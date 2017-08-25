@@ -1,4 +1,4 @@
-#!/home/vic/jsr308/microblog/flask/bin/python
+#!/home/vic/jsr308/webproject/flask/bin/python
 
 import sys
 import getopt
