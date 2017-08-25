@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <style>
+  body{
+     margin: 80px;
+     margin-left: 115px;
+     background-color: black;
+  }
+  .blue{
+      height: 500px;
+      width: 800px;
+  }
+  table{
+      border-spacing: 30px;
+  }
+  td{
+      border-style: groove;
+  }
+</style>
+</head>
+    
+<body>
+  <table>   
+    {% for row in charts %}
+    <tr>
+      {% for col in row %}
+        {% if col!=none %}
+        <td><div class = blue id="chart">
+        <embed type="image/svg+xml" src= {{ col }} />
+            </div>
+        </td>
+        {% endif %}
+      {% endfor %}
+        </tr>
+    {% endfor %}    
+    </table>
+</body>
+</html>

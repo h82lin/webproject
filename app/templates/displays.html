@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+     body{
+      background-image:url("/static/qnc.jpg");
+      background-size: cover;
+      background-repeat: no-repeat;
+    }
+     label{
+       color:white;
+        font-weight: bold;
+        font-size: 26px;
+      }
+      .myform{
+       margin-top: 350px;
+       margin-left: auto;
+       text-align: center;
+    }
+      
+     input[type="submit"] {
+      background-color: #0066ff;
+      color: white;
+      font-weight: bold;
+      border: none;
+      border-radius: 20px;
+      height: 40px;
+      width: 100px;
+    }  
+    </style> 
+</head>
+<body>
+<form action="/graphs" method="POST" class="myform">
+  <label for="render_option">Display data of:
+  <br><br>
+    <select name="display" multiple size="6">
+      <option value="all">All</option>
+      {% for project in elements %}
+      <option value={{project}}>{{project}}</option> 
+      {% endfor %}
+    </select>
+  </label>
+  <br><br>
+  <input type="submit" name="input" value="Submit!"> 
+</form>
+</body>
+</html>
