@@ -1,0 +1,46 @@
+{
+  "projects": {
+    "AFHbackdoor":
+    {
+      "name" : "AFHbackdoor",
+      "git-url": "na",
+      "build": "mvn -B compile",
+      "clean": "mvn clean"
+    },
+    "ECC-RSA-Backdoor":
+    {
+      "name" : "ECC-RSA-Backdoor",
+      "git-url": "na",
+      "build": "ant jar",
+      "clean": "ant clean"
+    },
+    "JBS":
+    {
+      "name" : "JBS",
+      "git-url": "na",
+      "build": "ant jar",
+      "clean": "ant clean"
+    },
+    "bdoorClient":
+    {
+      "name" : "bdoorClient",
+      "git-url": "na",
+      "build": "ant jar",
+      "clean": "ant clean"
+    },
+    "bdoorProto":
+    {
+      "name" : "bdoorProto",
+      "git-url": "na",
+      "build": "ant jar",
+      "clean": "ant clean"
+    },
+    "bdoorServer":
+    {
+      "name" : "bdoorServer",
+      "git-url": "na",
+      "build": "ant jar",
+      "clean": "ant clean"
+    }
+  }
+}

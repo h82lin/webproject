@@ -1,131 +1,121 @@
-from app import app
+from app import app                        
 from flask import render_template, request
-import numpy as np
 from pymongo import MongoClient
 import pygal
 from pygal.style import Style
-#from bashinput import allTime, dateFrom, dateTo, display, allProjects, allMetrics, metrics_list, projects_list
+import numpy as np
+from datetime import datetime, timedelta
 
-client = MongoClient()
-db = client.solverstatistics
-collection = db.stats_collection
-projects = []
-metrics = []
+client = MongoClient()                       #Use MongoClient() to connect to the running mongo instance                   
+db = client.solverstatistics                 #Connect to database named "solverstatistics", create one if such database doesn't exist
+collection = db.stats_collection             #Connect to collection named stats_collection in solverstatistics database, create such collection if it doesn't already exist
 
-@app.route('/' , methods=['GET', 'POST'])
+@app.route('/' , methods=['GET', 'POST'])              
 def home_page():
-    return render_template('base.html')
-
-
-@app.route('/displays',  methods=['GET', 'POST'])
-def displays():
-    global dateFrom
-    global dateTo 
-    global renderby
-    global projects
-    dateFrom = request.form['begin']
-    dateTo = request.form['end']
-    renderby = request.form['renderby']
-    if (renderby == 'projects'):
- 
-        projects = collection.distinct('project',{'time':{'$gte':dateFrom, '$lte':dateTo}})
-        return render_template('displays.html',
-                               elements=projects)
-
-    elif(renderby == 'metrics'):
-        global metrics
-        doc = collection.find({'time':{'$gte':dateFrom, '$lte':dateTo}})
-        for d in doc:
-            for key in d['metrics']:
-                if(key not in metrics):
-                    metrics.append(key)
-        return render_template('displays.html',
-                                elements=metrics)
+    projects = collection.distinct('project')            #Obtain all projects in database
+    projects.insert(0,'All')
+    docs = collection.find()
+    metrics = []
+    metrics.append('All')
+    for d in docs:
+        for key in d['metrics']:
+            if(key not in metrics):
+                metrics.append(key)                      #Obtain all metrics in database
+    
+    return render_template('base.html', projects=projects, metrics=metrics)
 
 
 @app.route('/graphs', methods=['GET', 'POST'])
 def graphs():
-    chart_list = []
-    display = request.form.getlist('display')
-    check = ''.join(display)
-    custom_style = Style(title_font_size=30, transition = False, value_font_family='googlefont:Raleway', value_font_size=10, value_colors=('black'))                                           
-    global projects
+    dateFrom = request.form['begin']                     #Obtain user-input of starting date from base.html
+    dateTo = request.form['end']                         #Obtain user-input of end date from base.html
+    good = type(dateTo)
+    renderby = request.form['renderby']                  #Obtain user-input on whether to render by projects or metrics
+    chart_list = [] 
+    pinput = request.form.getlist('projects')            #Obtain user selection of which projects to display  
+    minput = request.form.getlist('metrics')             #Obtain user selection of which metrics to display
+    checkp = ''.join(pinput)
+    checkm = ''.join(minput)
+    custom_style = Style(title_font_size=30, transition = False, value_font_size=10)    #Styling for the pygal graph                                       
+    
+    if (renderby == 'projects'):                         #If user has chosen to render by projects
+        if (checkp != 'All'):  
+            projects = pinput                            #projects stores a list of user selected project names
+        else:
+            projects = collection.distinct('project',{'time':{'$gte':dateFrom, '$lte':dateTo}})            #Querying mongo database for all project names within user-input time range
 
-
-    if (renderby == 'projects'):
-        if (check != 'all'):  
-            projects = display
+        if (checkm != 'All'):
+            metrics = minput                             #metrics stores a list of user selected metric names
 
         for project in projects:
-            metric_store = []                             
-            line_chart = pygal.Line(print_values=True, print_values_position='top', tooltip_fancy_mode= False, x_label_rotation=35, width=800, height=500, logarithmic=False, legend_box_size=10, max_scale=3, style=custom_style, x_value_formatter=lambda dt: dt.strftime('%Y/%m/%d at %H:%M:%S'))
+                                       
+            line_chart = pygal.DateTimeLine(print_labels=True, tooltip_fancy_mode= False, x_label_rotation=25, width=800, height=500, legend_box_size=10, max_scale=5, style=custom_style, x_value_formatter=lambda dt: dt.strftime('%b-%d-%Y %I:%M:%S %p'), show_x_guides=True)                             #Creating a pygal DatetimeLine graph
         
-            docs = list(collection.find({'time':{'$gte':dateFrom, '$lte':dateTo}, 'project': project}))
-            times = collection.distinct('time',{'time':{'$gte':dateFrom, '$lte':dateTo}, 'project': project})
-           
-            for doc in docs:
-                for key in doc['metrics']:
-                    if(key not in metric_store):
-                        metric_store.append(key)
-
-            for metric in metric_store:
-                value_store = []
-                time_store = []
-		i = 0
+            docs = list(collection.find({'time':{'$gte':dateFrom, '$lte':dateTo}, 'project': project}))           #Querying mongo database to find a list of documents within a certain datetime range and containing specific projects
+         
+            if (checkm == 'All'):                                       
+                metrics = [] 
                 for doc in docs:
                     for key in doc['metrics']:
-                        if(key == metric):
-                            value_store.append(doc['metrics'][key])
-                            time_store.append(doc['time'])
-                  
-                diff = list(set(times) - set(time_store))
-		for d in diff:
-                    value_store.insert(times.index(d), None)
+                        if(key not in metrics):
+                            metrics.append(key)                                   #Store all metrics under specific projects under 'metric'
+    
+            for metric in metrics:             
+                values = []
+                for doc in docs:
+                    for key in doc['metrics']:                                    
+                        if(key == metric):                                       
+ 			    time = datetime.strptime(doc['time'], '%Y-%m-%d %H:%M:%S')                   #Reformat the time to a datetime object
+                            time = time - timedelta(hours=5)                                             #Pygal library uses UTC time for its datetime graphs, minus 5 hours(EST) to obtain the correct UTC representation
+                            values.append({'label': str(doc['metrics'][key]), 'value':(time,doc['metrics'][key])})   #Append the value under a metric with its corresponding time to variable 'values'
                     
-                line_chart.add(metric, value_store)
-            line_chart.x_labels = (times)    
-            line_chart.title = project
-            chart = line_chart.render_data_uri()
+                line_chart.add(metric, values)                     #Add all values and time with a metric name to the linechart
+            line_chart.title = project                     
+            chart = line_chart.render_data_uri()                   #Store the uri of the generated graph
             chart_list.append(chart)       
 
 
-    elif (renderby == 'metrics'):
-        global metrics
-        if (check != 'all'):
-            metrics = display
+    elif (renderby == 'metrics'):                                   #If user has chosen to render by metrics
+        if (checkm != 'All'):
+            metrics = minput
 
-        for metric in metrics:
-            project_store = []
-                                          
-            line_chart = pygal.Line(print_values=True, print_values_position='top', x_label_rotation=35, y_labels_major_every=3, width=700, height=437, logarithmic=False, legend_box_size=10, max_scale=3, style=custom_style)
+        else:
+            docs = collection.find({'time':{'$gte':dateFrom, '$lte':dateTo}}) 
+            metrics = []
+            for d in docs:
+                for key in d['metrics']:
+                    if(key not in metrics):
+                        metrics.append(key)
+        if (checkp != 'All'):
+            projects = pinput
+
+        for metric in metrics:                                          
+            line_chart = pygal.DateTimeLine(print_labels=True, tooltip_fancy_mode= False, x_label_rotation=35, width=800, height=500, legend_box_size=10, max_scale=5, style=custom_style, x_value_formatter=lambda dt: dt.strftime('%b-%d-%Y %I:%M:%S %p'), show_x_guides=True)
         
             docs = list(collection.find({'time':{'$gte':dateFrom, '$lte':dateTo}, 'metrics.'+ metric:{'$exists': 'true'}}))
-	    times = collection.distinct('time',{'time':{'$gte':dateFrom, '$lte':dateTo}, 'metrics.'+ metric:{'$exists': 'true'}})
-            for doc in docs:
-                if(doc['project'] not in project_store):
-                    project_store.append(doc['project'])
+            
+            if (checkp == 'All'):
+                projects = []
+                for doc in docs:
+                    if(doc['project'] not in projects):
+                        projects.append(doc['project'])
 
-            for project in project_store:
-                value_store = []  
-                time_store = []   
+            for project in projects:
+                values = []  
                 for doc in docs:
                     if(doc['project'] == project):  
-                        value_store.append(doc['metrics'][metric])
-                        time_store.append(doc['time'])
-             
-                diff = list(set(times) - set(time_store))
-		for d in diff:
-                    value_store.insert(times.index(d), None)
+                        time = datetime.strptime(doc['time'], '%Y-%m-%d %H:%M:%S')
+                        time = time - timedelta(hours=5)
+                        values.append({'label': str(doc['metrics'][metric]), 'value':(time,doc['metrics'][metric])})
 
-                line_chart.add(project, value_store) 
-                line_chart.x_labels = (times)
+                line_chart.add(project, values) 
             line_chart.title = metric
             chart = line_chart.render_data_uri()
             chart_list.append(chart)
         
 
-    if(len(chart_list) % 2 != 0):
+    if(len(chart_list) % 2 != 0):                                      #If the amount of charts to be rendered is an odd number, append a 'None' to the end of the chart_list to tell the html side to not display a graph since the html side only displays 2 graphs per row each time.
             chart_list.append(None)
-    chart_list = np.array(chart_list)
-    charts = np.reshape(chart_list, (-1, 2))
-    return render_template('graphs.html', charts=charts)
+    chart_list = np.array(chart_list)                       
+    charts = np.reshape(chart_list, (-1, 2))                            #Resize the chart_list to a 2D list to display 2 graphs per row on the html side
+    return render_template('graphs.html', charts=charts, good=good)                #Render graphs.html and return the newly generated graphs
