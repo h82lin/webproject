@@ -29,7 +29,6 @@ def home_page():
 def graphs():
     dateFrom = request.form['begin']                     #Obtain user-input of starting date from base.html
     dateTo = request.form['end']                         #Obtain user-input of end date from base.html
-    good = type(dateTo)
     renderby = request.form['renderby']                  #Obtain user-input on whether to render by projects or metrics
     chart_list = []
     pinput = request.form.getlist('projects')            #Obtain user selection of which projects to display  
@@ -118,4 +117,4 @@ def graphs():
             chart_list.append(None)
     chart_list = np.array(chart_list)
     charts = np.reshape(chart_list, (-1, 2))                            #Resize the chart_list to a 2D list to display 2 graphs per row on the html side
-    return render_template('graphs.html', charts=charts, good=good)                #Render graphs.html and return the newly generated graphs
+    return render_template('graphs.html', charts=charts)                #Render graphs.html and return the newly generated graphs

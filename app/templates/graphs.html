@@ -33,7 +33,7 @@
       {% for col in row %}
         {% if col!=none %}
         <td><div class = blue id="chart">
-        <embed type="image/svg+xml" src= {{ col }}/>
+        <embed type="image/svg+xml" src={{ col }} />
             </div>
         </td>
         {% endif %}
@@ -41,6 +41,5 @@
         </tr>
     {% endfor %}
     </table>
-    <p>{{good}}</p>
 </body>
 </html>
