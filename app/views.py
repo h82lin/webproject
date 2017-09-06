@@ -1,4 +1,4 @@
-from app import app                        
+from app import app
 from flask import render_template, request
 from pymongo import MongoClient
 import pygal
@@ -10,7 +10,7 @@ client = MongoClient()                       #Use MongoClient() to connect to th
 db = client.solverstatistics                 #Connect to database named "solverstatistics", create one if such database doesn't exist
 collection = db.stats_collection             #Connect to collection named stats_collection in solverstatistics database, create such collection if it doesn't already exist
 
-@app.route('/' , methods=['GET', 'POST'])              
+@app.route('/' , methods=['GET', 'POST'])
 def home_page():
     projects = collection.distinct('project')            #Obtain all projects in database
     projects.insert(0,'All')
@@ -31,7 +31,7 @@ def graphs():
     dateTo = request.form['end']                         #Obtain user-input of end date from base.html
     good = type(dateTo)
     renderby = request.form['renderby']                  #Obtain user-input on whether to render by projects or metrics
-    chart_list = [] 
+    chart_list = []
     pinput = request.form.getlist('projects')            #Obtain user selection of which projects to display  
     minput = request.form.getlist('metrics')             #Obtain user selection of which metrics to display
     checkp = ''.join(pinput)
@@ -39,7 +39,7 @@ def graphs():
     custom_style = Style(title_font_size=30, transition = False, value_font_size=10)    #Styling for the pygal graph                                       
     
     if (renderby == 'projects'):                         #If user has chosen to render by projects
-        if (checkp != 'All'):  
+        if (checkp != 'All'):
             projects = pinput                            #projects stores a list of user selected project names
         else:
             projects = collection.distinct('project',{'time':{'$gte':dateFrom, '$lte':dateTo}})            #Querying mongo database for all project names within user-input time range
@@ -53,26 +53,26 @@ def graphs():
         
             docs = list(collection.find({'time':{'$gte':dateFrom, '$lte':dateTo}, 'project': project}))           #Querying mongo database to find a list of documents within a certain datetime range and containing specific projects
          
-            if (checkm == 'All'):                                       
-                metrics = [] 
+            if (checkm == 'All'):
+                metrics = []
                 for doc in docs:
                     for key in doc['metrics']:
                         if(key not in metrics):
                             metrics.append(key)                                   #Store all metrics under specific projects under 'metric'
     
-            for metric in metrics:             
+            for metric in metrics:
                 values = []
                 for doc in docs:
-                    for key in doc['metrics']:                                    
-                        if(key == metric):                                       
- 			    time = datetime.strptime(doc['time'], '%Y-%m-%d %H:%M:%S')                   #Reformat the time to a datetime object
-                            time = time - timedelta(hours=5)                                             #Pygal library uses UTC time for its datetime graphs, minus 5 hours(EST) to obtain the correct UTC representation
+                    for key in doc['metrics']:
+                        if(key == metric):
+ 			    time = datetime.strptime(doc['time'], '%Y-%m-%d %H:%M:%S')                               #Reformat the time to a datetime object
+                            time = time - timedelta(hours=5)                                                         #Pygal library uses UTC time for its datetime graphs, minus 5 hours(EST) to obtain the correct UTC representation
                             values.append({'label': str(doc['metrics'][key]), 'value':(time,doc['metrics'][key])})   #Append the value under a metric with its corresponding time to variable 'values'
                     
                 line_chart.add(metric, values)                     #Add all values and time with a metric name to the linechart
-            line_chart.title = project                     
+            line_chart.title = project
             chart = line_chart.render_data_uri()                   #Store the uri of the generated graph
-            chart_list.append(chart)       
+            chart_list.append(chart)
 
 
     elif (renderby == 'metrics'):                                   #If user has chosen to render by metrics
@@ -80,7 +80,7 @@ def graphs():
             metrics = minput
 
         else:
-            docs = collection.find({'time':{'$gte':dateFrom, '$lte':dateTo}}) 
+            docs = collection.find({'time':{'$gte':dateFrom, '$lte':dateTo}})
             metrics = []
             for d in docs:
                 for key in d['metrics']:
@@ -101,14 +101,14 @@ def graphs():
                         projects.append(doc['project'])
 
             for project in projects:
-                values = []  
+                values = []
                 for doc in docs:
-                    if(doc['project'] == project):  
+                    if(doc['project'] == project):
                         time = datetime.strptime(doc['time'], '%Y-%m-%d %H:%M:%S')
                         time = time - timedelta(hours=5)
                         values.append({'label': str(doc['metrics'][metric]), 'value':(time,doc['metrics'][metric])})
 
-                line_chart.add(project, values) 
+                line_chart.add(project, values)
             line_chart.title = metric
             chart = line_chart.render_data_uri()
             chart_list.append(chart)
@@ -116,6 +116,6 @@ def graphs():
 
     if(len(chart_list) % 2 != 0):                                      #If the amount of charts to be rendered is an odd number, append a 'None' to the end of the chart_list to tell the html side to not display a graph since the html side only displays 2 graphs per row each time.
             chart_list.append(None)
-    chart_list = np.array(chart_list)                       
+    chart_list = np.array(chart_list)
     charts = np.reshape(chart_list, (-1, 2))                            #Resize the chart_list to a 2D list to display 2 graphs per row on the html side
     return render_template('graphs.html', charts=charts, good=good)                #Render graphs.html and return the newly generated graphs

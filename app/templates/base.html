@@ -10,14 +10,14 @@
   <link href="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.2.2/css/bootstrap-combined.min.css" rel="stylesheet">
   <link rel="stylesheet" type="text/css" media="screen"
    href="http://tarruda.github.com/bootstrap-datetimepicker/assets/css/bootstrap-datetimepicker.min.css">
-
+    
 <style>
 .myform{
     margin-top: 230px;
     margin-left: auto;
     text-align: center;
 }
-    
+
 input[type="submit"] {
     background-color: #0066ff;
     color: white;
@@ -30,40 +30,40 @@ input[type="submit"] {
     display:block;
     margin-left: 47.5%;
     margin-top:300px;
-}  
+}
 
 body{
     background-color: black;
 }
-    
+
 .time{
     color: white;
     font-weight: bold;
     font-size: 18px;
 }
-    
+
 .render{
     color: white
 }
-    
+
 .projects{
     position: relative;
-    left: 165px; 
+    left: 165px;
     float: left;
 }
-    
+
 .metrics{
     position: relative;
     float: left;
     right: 20px;
-}  
-    
+}
+
 p{
     color: white;
     font-weight: bold;
     font-size: 18px;
 }
-    
+
 #metric-table{
     float: left;
     color: white; 
@@ -71,35 +71,35 @@ p{
     
 #project-table{
     float: left;
-    color: white; 
+    color: white;
     margin-right: 100px;
 }
-    
+
 #pdiv{
     margin-left: 775px;
 }
-   
-</style> 
-</head>  
+
+</style>
+</head>
 
 <body>
 <form action="/graphs" class="myform" method="POST">
   <label for="datetimepicker" class="time">From:</label>
     <div id="datetimepicker" class="input-append date">
-    <input type="text" name="begin"> 
+    <input type="text" name="begin">
         <span class="add-on">
           <i data-time-icon="icon-time" data-date-icon="icon-calendar"></i>
         </span>
     </div>
-        
+
   <label for="datetimepicker2" class="time">To:</label>
   <div id="datetimepicker2" class="input-append date">
-  <input type="text" name="end"> 
+  <input type="text" name="end">
       <span class="add-on">
-        <i data-time-icon="icon-time" data-date-icon="icon-calendar"></i> 
+        <i data-time-icon="icon-time" data-date-icon="icon-calendar"></i>
       </span>
   </div>
-  
+
   <br>
   <br>
   <p>Render Graphs by:</p>
@@ -107,10 +107,10 @@ p{
       <input type="radio" name="renderby" id="byprojects" value="projects">
     </label>
     <label class="render">Metrics
-      <input type="radio" name="renderby" id="bymetrics" value="metrics"> 
+      <input type="radio" name="renderby" id="bymetrics" value="metrics">
     </label>
   <br>
-    
+
  <p>Choose projects/metrics</p>
 <div id="pdiv">
 <table id="project-table" >
@@ -120,7 +120,7 @@ p{
 <tr>
 <td ><br></td>
 </tr>
-{% for project in projects %} 
+{% for project in projects %}
 <tr>
     <td>
    <label class="render2" align="right">{{project}}
@@ -132,27 +132,27 @@ p{
 {% endfor %}
 </table>
 </div>
-    
-<div id="tablem" >
-<table id="metric-table" >
+
+<div id="tablem">
+<table id="metric-table">
 <tr>
     <th align="left">Metrics:</th>
 </tr>
 <tr>
-<td ><br></td>
+<td><br></td>
 </tr>
 {% for metric in metrics %}
 <tr>
     <td>
    <label class="render3" align="left"> {{metric}}
-    <input type="checkbox" name="metrics" class= "metrics" value={{metric}}>    
+    <input type="checkbox" name="metrics" class= "metrics" value={{metric}}>
    </label>
    </td>
 </tr>
 {% endfor %}
 </table>
 </div>
-    
+
 <input type="submit" name="input" value="Submit!">
 </form>
 <script>
@@ -160,7 +160,7 @@ p{
     projects = document.getElementById("project-table");
     var metrics;
     metrics = document.getElementById("metric-table");
-    
+
     document.getElementById("byprojects").onclick = function(){
         projects.style.color = "red";
         metrics.style.color = "white";
@@ -168,11 +168,11 @@ p{
      document.getElementById("bymetrics").onclick = function(){
         metrics.style.color = "red";
         projects.style.color = "white";
-     }
+    }
 </script>
 <script type="text/javascript"
  src="http://cdnjs.cloudflare.com/ajax/libs/jquery/1.8.3/jquery.min.js">
-</script> 
+</script>
  <script type="text/javascript"
  src="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.2.2/js/bootstrap.min.js">
 </script>

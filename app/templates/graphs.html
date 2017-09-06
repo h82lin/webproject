@@ -23,24 +23,23 @@
     color: white;
     font-weight: bold;
     font-size: 18px;
-}
+  }
 </style>
 </head>
-    
 <body>
-  <table>   
+  <table>
     {% for row in charts %}
     <tr>
       {% for col in row %}
         {% if col!=none %}
         <td><div class = blue id="chart">
-        <embed type="image/svg+xml" src= {{ col }} />
+        <embed type="image/svg+xml" src= {{ col }}/>
             </div>
         </td>
         {% endif %}
       {% endfor %}
         </tr>
-    {% endfor %}    
+    {% endfor %}
     </table>
     <p>{{good}}</p>
 </body>
